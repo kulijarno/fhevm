@@ -223,6 +223,7 @@ pub async fn generate_trivial_encrypt(
             },
         )),
         transaction_hash: Some(transaction_hash),
+        block_number: None,
     };
     let mut tx = listener_event_to_db.new_transaction().await?;
     listener_event_to_db
@@ -374,6 +375,7 @@ pub async fn insert_tfhe_event(
     let log = LogTfhe {
         event,
         transaction_hash: Some(transaction_hash),
+        block_number: None,
     };
     listener_event_to_db
         .insert_tfhe_event(&mut tx, &log)

@@ -836,6 +836,7 @@ async fn db_insert_block_no_retry(
                 let log = LogTfhe {
                     event,
                     transaction_hash: log.transaction_hash,
+                    block_number: log.block_number,
                 };
                 db.insert_tfhe_event(&mut tx, &log).await?;
                 continue;
@@ -847,7 +848,13 @@ async fn db_insert_block_no_retry(
                 AclContract::AclContractEvents::decode_log(&log.inner)
             {
                 info!(acl_event = ?event, "ACL event");
-                db.handle_acl_event(&mut tx, &event).await?;
+                db.handle_acl_event(
+                    &mut tx,
+                    &event,
+                    &log.transaction_hash,
+                    &log.block_number,
+                )
+                .await?;
                 continue;
             }
         }
