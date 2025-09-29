@@ -39,6 +39,7 @@ async fn insert_tfhe_event(
     let event = LogTfhe {
         event: log.inner,
         transaction_hash: log.transaction_hash,
+        block_number: log.block_number,
     };
     db.insert_tfhe_event(tx, &event).await
 }
