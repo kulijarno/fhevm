@@ -5,6 +5,7 @@ use alloy::{
     rpc::types::Log, sol,
 };
 use fhevm_engine_common::telemetry;
+use fhevm_engine_common::utils::compact_hex;
 use futures_util::{future::join_all, StreamExt};
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use tokio_util::sync::CancellationToken;
@@ -180,16 +181,16 @@ impl<P: Provider<Ethereum> + Clone + 'static, A: AwsS3Interface> GatewayListener
         request: InputVerification::VerifyProofRequest,
         log: Log,
     ) -> anyhow::Result<()> {
-        let transaction_id = log.transaction_hash.map(|h| h.to_vec());
+        let transaction_id = log.transaction_hash.map(|h| h.to_vec()).unwrap_or_default();
+        let chain_id = request.contractChainId.to::<u64>();
 
         info!(zk_proof_id = %request.zkProofId, tid = %compact_hex(&transaction_id), "Received ZK proof request event");
         self.update_last_block_num(db_pool, from_block, &log)
             .await?;
-        let transaction_id = log.transaction_hash.map(|h| h.to_vec());
 
         let _ = telemetry::try_begin_transaction(
             &db_pool,
-            chain_id,
+            chain_id as i64,
             &transaction_id,
             log.block_number.unwrap_or_default(),
         )
