@@ -234,7 +234,7 @@ FOR UPDATE SKIP LOCKED            ",
                         work_to_remove.insert(*idx);
                     });
                 } else {
-                    telemetry::set_txn_id(&mut span_txns, &transaction_id);
+                    telemetry::set_txn_id(&mut span_txns, transaction_id);
                 }
             }
             for idx in work_to_remove.iter().rev() {
