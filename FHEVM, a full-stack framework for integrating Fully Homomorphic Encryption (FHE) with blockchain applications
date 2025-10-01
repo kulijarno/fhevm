@@ -1,0 +1,33 @@
+import random
+
+def number_guessing_game():
+    number = random.randint(1, 100)
+    attempts = 0
+    max_attempts = 7
+    
+    print("Selamat datang di Permainan Tebak Angka!")
+    print("Saya telah memilih angka antara 1 hingga 100.")
+    print(f"Anda punya {max_attempts} kesempatan untuk menebaknya.")
+    
+    while attempts < max_attempts:
+        try:
+            guess = int(input("Masukkan tebakan Anda: "))
+            attempts += 1
+            
+            if guess == number:
+                print(f"Selamat! Anda menebak dengan benar dalam {attempts} percobaan.")
+                return
+            elif guess < number:
+                print("Terlalu rendah! Coba lagi.")
+            else:
+                print("Terlalu tinggi! Coba lagi.")
+                
+            remaining = max_attempts - attempts
+            if remaining > 0:
+                print(f"Sisa kesempatan: {remaining}")
+                
+        except ValueError:
+            print("Masukkan angka yang valid!")
+            attempts -= 1  # Tidak hitung kesalahan input
+    
+    print(f"Maaf, angka yang benar adalah {number}. Coba lagi nanti!")
