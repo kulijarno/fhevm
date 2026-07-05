@@ -55,3 +55,11 @@ tonic-build = { workspace = true }
 [[bin]]
 name = "generate-keys"
 path = "src/bin/generate_keys.rs"
+
+[dev-dependencies]
+criterion = { version = "5.0.1", package = "codspeed-criterion-compat" }
+
+[[bench]]
+name = "coprocessor_ops"
+path = "benches/coprocessor_ops.rs"
+harness = false

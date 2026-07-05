@@ -1,0 +1,66 @@
+name: coprocessor-codspeed-benchmarks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - .github/workflows/coprocessor-codspeed-benchmarks.yml
+      - coprocessor/fhevm-engine/**
+      - coprocessor/proto/**
+  # Allows CodSpeed to trigger backtest performance analysis to generate initial data.
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  codspeed-benchmarks:
+    name: coprocessor-codspeed-benchmarks/run
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read' # Required to checkout repository code
+      id-token: 'write' # Required for OpenID Connect authentication with CodSpeed
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: 'false'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler cmake clang libclang-dev pkg-config libssl-dev
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@a54c7afa936fefeb4456b2dd8068152669aa8203
+        with:
+          toolchain: stable
+
+      - name: Install cargo-codspeed
+        run: cargo install cargo-codspeed --locked --version 5.0.1
+
+      - name: Cache cargo
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            coprocessor/fhevm-engine/target
+          key: ${{ runner.os }}-codspeed-cargo-${{ hashFiles('coprocessor/fhevm-engine/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-codspeed-cargo-
+
+      - name: Build the benchmark target(s)
+        run: cargo codspeed build -p fhevm-engine-common --bench coprocessor_ops
+        working-directory: coprocessor/fhevm-engine
+
+      - name: Run the benchmarks
+        uses: CodSpeedHQ/action@a4a36bb07c0638b0b4ca52bf1f3dad1b4289e52f # v4.18.1
+        with:
+          mode: simulation
+          run: cargo codspeed run -p fhevm-engine-common --bench coprocessor_ops
+          working-directory: coprocessor/fhevm-engine
